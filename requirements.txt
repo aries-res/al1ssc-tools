@@ -1,4 +1,7 @@
 Django==3.2.6
+gunicorn==20.1.0
+
+# Analysis
 numpy==1.21.1
 matplotlib==3.4.3
 sunpy==3.0.1
