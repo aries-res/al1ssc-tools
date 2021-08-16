@@ -1,1 +1,8 @@
 Django==3.2.6
+numpy==1.21.1
+matplotlib==3.4.3
+sunpy==3.0.1
+astroquery==0.4.3
+
+# Code quality
+black==21.7b0
