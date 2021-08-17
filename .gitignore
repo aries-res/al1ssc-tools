@@ -1,6 +1,6 @@
 env
 __pycache__
-*.sqlite3
+mysql.cnf
 
 # Result of collectstatic
 staticfiles 
