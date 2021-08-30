@@ -21,7 +21,8 @@ def get_3Dorbit_data(request):
             "stop": params["timeStop"],
             "step": params["timeStep"],
         }
-        body_id = params["body"]
+        body_name = params["body"]
+        body_id = Body.objects.get(name=body_name).body_id
 
         coord = get_horizons_coord(
             body=body_id,
@@ -50,7 +51,6 @@ def get_3Dorbit_data(request):
             ),
             axis=-1,
         )
-        name = Body.objects.get(body_id=body_id).name
 
         return JsonResponse(
             dict(
@@ -59,7 +59,7 @@ def get_3Dorbit_data(request):
                 z=z.tolist(),
                 hovertemplate=hovertemplate,
                 customdata=customdata.tolist(),
-                name=name,
+                name=body_name,
             )
         )
 
