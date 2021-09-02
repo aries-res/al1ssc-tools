@@ -3,6 +3,7 @@ gunicorn==20.1.0 # WSGI server
 whitenoise==5.3.0 # to enable gunicorn serving static files
 mysqlclient==2.0.3 # for MySQL database
 python-decouple==3.4 # to read env variables & files
+django-cors-headers==3.8.0 # to manage CORS
 
 # Analysis
 numpy==1.21.1
