@@ -38,9 +38,9 @@ def get_3Dorbit_data(request):
         hovertemplate = (
             "<b>%{customdata[0]}</b>"
             + "<br>x: %{x}<br>y: %{y}<br>z: %{z}"
-            + "<br>lon: %{customdata[1]: .6f}"
-            + "<br>lat: %{customdata[2]: .6f}"
-            + "<br>distance: %{customdata[3]: .6f}"
+            + "<br>lon: %{customdata[1]:.6f}"
+            + "<br>lat: %{customdata[2]:.6f}"
+            + "<br>distance: %{customdata[3]:.6f}"
         )
         customdata = np.stack(
             (
@@ -51,6 +51,7 @@ def get_3Dorbit_data(request):
             ),
             axis=-1,
         )
+        color = Body.objects.get(name=body_name).color
 
         return JsonResponse(
             dict(
@@ -60,6 +61,7 @@ def get_3Dorbit_data(request):
                 hovertemplate=hovertemplate,
                 customdata=customdata.tolist(),
                 name=body_name,
+                color=color,
             )
         )
 
