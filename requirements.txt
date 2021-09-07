@@ -7,6 +7,7 @@ django-cors-headers==3.8.0 # to manage CORS
 
 # Analysis
 numpy==1.21.1
+pandas==1.3.2
 matplotlib==3.4.3
 sunpy==3.0.1
 astroquery==0.4.3

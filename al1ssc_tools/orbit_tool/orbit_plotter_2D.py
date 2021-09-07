@@ -6,19 +6,16 @@ https://github.com/esdc-esac-esa-int/Solar-MACH/blob/e3400de5a7ffced996c959384c3
 """
 
 import math
-from copy import deepcopy
-
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import scipy.constants as const
+import astropy.constants as const
 from matplotlib.legend_handler import HandlerPatch
-from sunpy import log
-from sunpy.coordinates import frames
-from sunpy.coordinates import get_horizons_coord
+from sunpy.coordinates import frames, get_horizons_coord
 
-from selected_bodies import body_dict
+from .models import Body
+
 
 plt.rcParams["axes.linewidth"] = 1.5
 plt.rcParams["font.size"] = 15
@@ -26,28 +23,6 @@ plt.rcParams["agg.path.chunksize"] = 20000
 
 pd.options.display.max_rows = None
 pd.options.display.float_format = "{:.1f}".format
-
-# disable unnecessary logging
-log.setLevel("WARNING")
-
-
-def print_body_list():
-    """
-    prints a selection of body keys and the corresponding body names which may be provided to the
-    HeliosphericConstellation class
-    """
-    print(
-        "Please visit https://ssd.jpl.nasa.gov/horizons.cgi?s_target=1#top for a complete list of available bodies"
-    )
-    data = (
-        pd.DataFrame.from_dict(
-            body_dict, orient="index", columns=["ID", "Body", "Color"]
-        )
-        .drop(["ID", "Color"], "columns")
-        .drop_duplicates()
-    )
-    data.index.name = "Key"
-    return data
 
 
 class HeliosphericConstellation:
@@ -76,9 +51,6 @@ class HeliosphericConstellation:
         reference_long=None,
         reference_lat=None,
     ):
-        body_list = list(dict.fromkeys(body_list))
-        bodies = deepcopy(body_dict)
-
         self.date = date
         self.reference_long = reference_long
         self.reference_lat = reference_lat
@@ -93,20 +65,7 @@ class HeliosphericConstellation:
         if len(vsw_list) == 0:
             vsw_list = np.zeros(len(body_list)) + 400
 
-        random_cols = [
-            "forestgreen",
-            "mediumblue",
-            "m",
-            "saddlebrown",
-            "tomato",
-            "olive",
-            "steelblue",
-            "darkmagenta",
-            "c",
-            "darkslategray",
-            "yellow",
-            "darkolivegreen",
-        ]
+        bodies_dict = {}
         body_lon_list = []
         body_lat_list = []
         body_dist_list = []
@@ -118,29 +77,19 @@ class HeliosphericConstellation:
         latsep_list = []
         footp_longsep_list = []
 
-        for i, body in enumerate(body_list.copy()):
-            if body in bodies:
-                body_id = bodies[body][0]
-                body_lab = bodies[body][1]
-                body_color = bodies[body][2]
-
-            else:
-                body_id = body
-                body_lab = str(body)
-                body_color = random_cols[i]
-                bodies.update(
-                    dict.fromkeys([body_id], [body_id, body_lab, body_color])
-                )
+        for i, body_name in enumerate(body_list):
+            body = Body.objects.get(name=body_name)
+            bodies_dict[body_name] = [body.body_id, body.name, body.color]
 
             try:
                 pos = get_horizons_coord(
-                    body_id, date, "id"
+                    body.body_id, date, "id"
                 )  # (lon, lat, radius) in (deg, deg, AU)
                 pos = pos.transform_to(
                     frames.HeliographicCarrington(observer="Sun")
                 )
-                bodies[body_id].append(pos)
-                bodies[body_id].append(vsw_list[i])
+                bodies_dict[body_name].append(pos)
+                bodies_dict[body_name].append(vsw_list[i])
 
                 longsep_E = pos.lon.value - self.pos_E.lon.value
                 if longsep_E > 180:
@@ -158,7 +107,7 @@ class HeliosphericConstellation:
                 sep, alpha = self.backmapping(
                     pos, date, reference_long, vsw=vsw_list[i]
                 )
-                bodies[body_id].append(sep)
+                bodies_dict[body_name].append(sep)
 
                 body_footp_long = pos.lon.value + alpha
                 if body_footp_long > 360:
@@ -166,7 +115,7 @@ class HeliosphericConstellation:
                 footp_long_list.append(body_footp_long)
 
                 if self.reference_long is not None:
-                    bodies[body_id].append(sep)
+                    bodies_dict[body_name].append(sep)
                     long_sep = pos.lon.value - self.reference_long
                     if long_sep > 180:
                         long_sep = long_sep - 360.0
@@ -181,14 +130,13 @@ class HeliosphericConstellation:
                 print("")
                 print(
                     '!!! No ephemeris for target "'
-                    + str(body)
+                    + str(body_name)
                     + '" for date '
                     + self.date
                 )
-                body_list.remove(body)
+                del bodies_dict[body_name]
 
-        body_dict_short = {sel_key: bodies[sel_key] for sel_key in body_list}
-        self.body_dict = body_dict_short
+        self.body_dict = bodies_dict
         self.max_dist = np.max(body_dist_list)
         self.coord_table = pd.DataFrame(
             {
@@ -215,9 +163,6 @@ class HeliosphericConstellation:
                 "Latitudinal separation between body and reference_lat"
             ] = latsep_list
 
-        pass
-        self.coord_table.style.set_properties(**{"text-align": "left"})
-
     def backmapping(self, body_pos, date, reference_long, vsw=400):
         """
         Determine the longitudinal separation angle of a given spacecraft and a given reference longitude
@@ -239,7 +184,7 @@ class HeliosphericConstellation:
             alpha: float
                 backmapping angle
         """
-        AU = const.au / 1000  # km
+        AU = const.au.value / 1000  # km
 
         pos = body_pos
         lon = pos.lon.value
@@ -290,7 +235,7 @@ class HeliosphericConstellation:
         """
         import pylab as pl
 
-        AU = const.au / 1000  # km
+        AU = const.au.value / 1000  # km
 
         fig, ax = plt.subplots(
             subplot_kw=dict(projection="polar"), figsize=(12, 8)
@@ -302,11 +247,11 @@ class HeliosphericConstellation:
             360.0 / (25.38 * 24 * 60 * 60)
         )  # solar rot-angle in rad/sec, sidereal period
 
-        for i, body_id in enumerate(self.body_dict):
-            body_lab = self.body_dict[body_id][1]
-            body_color = self.body_dict[body_id][2]
-            body_vsw = self.body_dict[body_id][4]
-            body_pos = self.body_dict[body_id][3]
+        for body_name in self.body_dict:
+            body_lab = self.body_dict[body_name][1]
+            body_color = self.body_dict[body_name][2]
+            body_pos = self.body_dict[body_name][3]
+            body_vsw = self.body_dict[body_name][4]
 
             pos = body_pos
             dist_body = pos.radius.value
