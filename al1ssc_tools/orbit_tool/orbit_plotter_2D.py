@@ -6,6 +6,8 @@ https://github.com/esdc-esac-esa-int/Solar-MACH/blob/e3400de5a7ffced996c959384c3
 """
 
 import math
+import base64
+import io
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -215,7 +217,6 @@ class HeliosphericConstellation:
         plot_sun_body_line=False,
         show_earth_centered_coord=True,
         reference_vsw=400,
-        outfile="",
     ):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
@@ -230,8 +231,6 @@ class HeliosphericConstellation:
                     if True, additional longitudinal tickmarks are shown with Earth at longitude 0
         reference_vsw: int
                     if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
-        outfile: string
-                if provided, the plot is saved with outfile as filename
         """
         import pylab as pl
 
@@ -367,7 +366,9 @@ class HeliosphericConstellation:
                 np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=22.5
             )
 
-        ax.set_title(self.date + "\n", pad=60)
+        ax.set_title(
+            self.date.replace("T", " ") + "\n", fontweight="bold", pad=60
+        )
 
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.15)
@@ -387,9 +388,18 @@ class HeliosphericConstellation:
 
         ax.tick_params(axis="x", pad=10)
 
-        if outfile != "":
-            plt.savefig(outfile)
-        plt.show()
+        # Save figure in in memory as png and convert it to base64 encoded string
+        img_IObytes = io.BytesIO()
+        plt.savefig(img_IObytes, format="png")
+        plt.savefig("plot.png")
+        img_base64 = base64.b64encode(img_IObytes.getvalue()).decode("utf-8")
+        return img_base64
+
+        # Save figure in in memory as svg and convert it to string
+        # img_IOstring = io.StringIO()
+        # plt.savefig(img_IOstring, format="svg")
+        # img_svg = img_IOstring.getvalue() # do contain whitespaces - can be removed by xml parser but not much savings on size
+        # return img_svg
 
     def _polar_twin(self, ax, E_long, position):
         """
