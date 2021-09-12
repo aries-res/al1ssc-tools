@@ -71,20 +71,19 @@ def get_3Dorbit_data(request):
         utc_obstime_str = np.array(
             [rounded_datetime_str(d) for d in coord.obstime.utc.datetime]
         )
-        # TODO: Add units in hoverlabel
         hovertemplate = (
             "<b>%{customdata[0]} UTC</b>"
-            + "<br>x: %{x}<br>y: %{y}<br>z: %{z}"
-            + "<br>lon: %{customdata[1]:.6f}"
-            + "<br>lat: %{customdata[2]:.6f}"
-            + "<br>distance: %{customdata[3]:.6f}"
+            + "<br>x: %{x} AU<br>y: %{y} AU<br>z: %{z} AU"
+            + "<br>lon.: %{customdata[1]:.3f}°"
+            + "<br>lat.: %{customdata[2]:.3f}°"
+            + "<br>dist.: %{customdata[3]:.3f} AU"
         )
         customdata = np.stack(
             (
                 utc_obstime_str,
-                coord.lon.value,
-                coord.lat.value,
-                coord.distance.value,  # in AU
+                np.around(coord.lon.value, 3),
+                np.around(coord.lat.value, 3),
+                np.around(coord.distance.value, 3),  # in AU
             ),
             axis=-1,
         )
@@ -92,9 +91,9 @@ def get_3Dorbit_data(request):
 
         return JsonResponse(
             dict(
-                x=x.tolist(),
-                y=y.tolist(),
-                z=z.tolist(),
+                x=np.around(x, 6).tolist(),
+                y=np.around(y, 6).tolist(),
+                z=np.around(z, 6).tolist(),
                 hovertemplate=hovertemplate,
                 customdata=customdata.tolist(),
                 name=body_name,
