@@ -142,28 +142,28 @@ class HeliosphericConstellation:
         self.max_dist = np.max(body_dist_list)
         self.coord_table = pd.DataFrame(
             {
-                "Spacecraft/Body": list(self.body_dict.keys()),
-                "Carrington Longitude (°)": body_lon_list,
-                "Latitude (°)": body_lat_list,
-                "Heliocentric Distance (AU)": body_dist_list,
-                "Longitudinal separation to Earth's longitude": longsep_E_list,
-                "Latitudinal separation to Earth's latitude": latsep_E_list,
-                "Vsw": body_vsw_list,
-                "Magnetic footpoint longitude (Carrington)": footp_long_list,
+                "Body": list(self.body_dict.keys()),
+                "Longitude (°)": np.around(body_lon_list),
+                "Latitude (°)": np.around(body_lat_list),
+                "Heliocentric Distance (AU)": np.around(body_dist_list, 2),
+                "Longitudinal separation to Earth": np.around(longsep_E_list),
+                "Latitudinal separation to Earth": np.around(latsep_E_list),
+                # "Vsw": body_vsw_list,
+                # "Magnetic footpoint longitude (Carrington)": footp_long_list,
             }
         )
 
-        if self.reference_long is not None:
-            self.coord_table[
-                "Longitudinal separation between body and reference_long"
-            ] = longsep_list
-            self.coord_table[
-                "Longitudinal separation between body's mangetic footpoint and reference_long"
-            ] = footp_longsep_list
-        if self.reference_lat is not None:
-            self.coord_table[
-                "Latitudinal separation between body and reference_lat"
-            ] = latsep_list
+        # if self.reference_long is not None:
+        #     self.coord_table[
+        #         "Longitudinal separation between body and reference_long"
+        #     ] = longsep_list
+        #     self.coord_table[
+        #         "Longitudinal separation between body's mangetic footpoint and reference_long"
+        #     ] = footp_longsep_list
+        # if self.reference_lat is not None:
+        #     self.coord_table[
+        #         "Latitudinal separation between body and reference_lat"
+        #     ] = latsep_list
 
     def backmapping(self, body_pos, date, reference_long, vsw=400):
         """
