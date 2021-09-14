@@ -390,8 +390,8 @@ class HeliosphericConstellation:
 
         # Save figure in in memory as png and convert it to base64 encoded string
         img_IObytes = io.BytesIO()
-        plt.savefig(img_IObytes, format="png")
-        # plt.savefig("plot.png")  # for debugging
+        plt.savefig(img_IObytes, format="png", bbox_inches="tight")
+        # plt.savefig("plot.png", bbox_inches="tight")  # for debugging
         img_base64 = base64.b64encode(img_IObytes.getvalue()).decode("utf-8")
         return img_base64
 
