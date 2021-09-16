@@ -317,6 +317,7 @@ class HeliosphericConstellation:
                 )
 
         leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
+
         if self.reference_long is not None:
 
             def legend_arrow(width, height, **_):
@@ -367,7 +368,7 @@ class HeliosphericConstellation:
             )
 
         ax.set_title(
-            f"At {self.date.replace('T', ' ')} UTC\n", fontsize=15, pad=72
+            f"At {self.date.replace('T', ' ')} UTC\n", fontsize=15, pad=56
         )
 
         plt.tight_layout()
