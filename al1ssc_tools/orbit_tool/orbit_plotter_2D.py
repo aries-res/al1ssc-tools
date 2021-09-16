@@ -367,7 +367,7 @@ class HeliosphericConstellation:
             )
 
         ax.set_title(
-            self.date.replace("T", " ") + " UTC\n", fontweight="bold", pad=60
+            f"At {self.date.replace('T', ' ')} UTC\n", fontsize=15, pad=72
         )
 
         plt.tight_layout()
